@@ -2,6 +2,19 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 chankflag=False
+#シェイプを持ってるかチェック。シェイプがある場合nurbsCurveかチェック　(Bool)
+def rigCheck(obj):
+    print 'チェック開始'
+    if pm.objectType(obj) == 'nurbsCurve': #obj.getChildren()の場合、transformじゃなくてshapeが取れるっぽい？よくわからない。getparentの場合、この処理は必要ない。なぜ？
+        return True
+    if pm.objectType(obj) == 'transform' and obj.getShape(): #オブジェクトタイプがtransform かつシェイプを持っている場合。'transform'の条件式付け足すと上手くいくっぽい理由がわからない。
+        shape = obj.getShape()
+        if pm.objectType(shape) == 'nurbsCurve':
+            return True
+        else :
+            return False 
+    else :
+        return False
 
 with pm.window( title = 'リグセレクターユーティリティ', width=300) as testWin:
     with pm.columnLayout( adjustableColumn=True):
@@ -414,335 +427,325 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
         selectCg = pm.scriptJob(e= ('SelectionChanged','changeSelected()'),p=testWin) #選択オブジェクト変えるたびにめっちゃ呼ばれるんで、原因わかるまで封印。記述する場所が違うと処理が変わる。かなりの罠。
         toolCg = pm.scriptJob(e= ('ToolChanged','changeContext()'),p=testWin) #ツールが切り替わるたびに呼ばれる処理    うっかり消してしまった！THE失態!!   
 
-def poseReset(root=False):
-    getAllRig(root)
-    resetTranslate()
-    resetRotate()
 
 
-def objTypePrint():
-    obj = pm.selected()[0]
-    # obj = pm.selected()
-    shape = obj.getShape()
-    objtype = pm.objectType(shape)
-    # nodetype = pm.nodeType(obj, api=True)
-    nodetype = pm.nodeType(obj)
-    print 'オブジェクトタイプを返却します', objtype, 'ノードタイプを返却します'
-    # print pm.getAttr(obj)
+    def poseReset(root=False):
+        getAllRig(root)
+        resetTranslate()
+        resetRotate()
 
 
-def getParent():
-    prevRig = None
-    obj = pm.selected()[len(pm.selected())-1]
-    print '現在選択されているオブジェクト', obj
-    parent = obj.getParent()
-    while (parent):
-        if rigCheck(parent):
-            prevRig = parent
-            break
-        parent = parent.getParent()
-  
-    parent = parent.getParent()
-    while (parent): #次に選択するリグが一番親かどうかを確認する処理
-        if rigCheck(parent):
-            break
-        parent = parent.getParent()
-    if parent:
-         pm.select(prevRig, add=True)
-         print 'こいつの親はメインでないです', prevRig
-    else: 
-        print 'こいつの親はメインだす' 
-    return
-
-def getAllRig(root):
-    obj = pm.selected()[len(pm.selected())-1]
-    parent = obj.getParent()
-    latestRig = obj
-    while (parent):
-        if rigCheck(parent):
-            latestRig = parent
-        parent = parent.getParent()
-    print 'ここにメインが入ってないとおかしいよなぁ！？', latestRig 
-    children = latestRig.getChildren()
-    if not root and len(children):
-        children.pop(0)   
-    loopAllChildren(children)
-    
-    return
-
-def getAllParents():
-    obj = pm.selected()[0]
-    #最上階層までの全ての親を取得
-    print '最上階層までの全ての親を取得' , obj.getAllParents()
-
-
-def getRoot():
-    obj = pm.selected()[0]
-    #ルートノードを取得
-    root = obj.root()
-    print 'ルートノードを取得' , root
-    return root
-
-
-def getSiblings():
-    obj = pm.selected()[0]
-    #同じ階層を取得
-    print '同じ階層を取得' , obj.getSiblings()
-
-def getChildren():
-    #子階層を取得
-    obj = pm.selected()[len(pm.selected())-1]
-    print '現在選択されているオブジェクト', obj
-    children = obj.getChildren()
-    # children=pm.listRelatives(obj)
-    if len(children):
-        children.pop(0)
-    # for child in children:
-    #     if child.nodeType() == "transform":
-    #         mask.append(child)
-    #     print 'チルドレン', child.nodeType()    
-    print 'チルドレン', children
-
-    loopChildren(children)
-
-def loopChildren(childList): #子要素の再帰処理用関数
-    for child in childList:
-        if rigCheck(child):
-            # child = pm.listRelatives(child, p=True)[0]
-            print 'childの中身はなんじゃらほい', child
-            pm.select(child, add=True)
-        else:
-            loopChildren(child.getChildren())
-    return
-
-def loopAllChildren(childList): #子要素の再帰処理用関数全部選択バージョン
-    for child in childList:
-        if rigCheck(child):
-            # child = pm.listRelatives(child, p=True)[0]
-            print 'childの中身はなんじゃらほい', child    
-            pm.select(child, add=True)
-            loopAllChildren(child.getChildren())
-        else:
-            loopAllChildren(child.getChildren())
-    return
-
-
-def createParentCubeSphere():
-    # | による親子付け
-
-    #トランスフォームノードとシェイプノードのリストが返ってくるため、[0]で一つ目の要素のみ受け取っています
-    myCube = pm.polyCube()[0]
-    #同じく
-    mySphere = pm.polySphere()[0]
-    #親子付け
-    myCube | mySphere
-
-    #階層化されているか確認
-    print '階層化の確認', mySphere.name( long=True)
-
-
-#新機能のテスト
-# 原点へ移動
-def zeroTransform():
-    obj = pm.selected()[0]
-    pm.move(obj,0,0,0,a=False)
-
-#　ポジションリセット
-def resetTranslate(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item) : #選択されているのがリグの場合
-            # itemに別の値を代入すると.translateプロパティが取得できなくのるので、allitemという別の変数を作る必要がある。
-            if (not pm.objectType(item) == 'transform') and pm.objectType(pm.listRelatives(item, p=True)[0] ) == 'transform':
-                allitem = pm.listRelatives(item, p=True)[0]
-                # print 'ここに何がはいっているのか', pm.objectType(item)
-                if axis == 'x':
-                    pm.setAttr(allitem.translateX,l=False)
-                    pm.setAttr(allitem.translateX,0)
-                elif axis == 'y':
-                    pm.setAttr(allitem.translateY,l=False)
-                    pm.setAttr(allitem.translateY,0)
-                elif axis == 'z':
-                    pm.setAttr(allitem.translateZ,l=False)
-                    pm.setAttr(allitem.translateZ,0)
-                else:
-                    pm.setAttr(allitem.translateX,l=False)
-                    pm.setAttr(allitem.translateY,l=False)
-                    pm.setAttr(allitem.translateZ,l=False)
-                    pm.setAttr(allitem.translate,l=False)
-                    pm.setAttr(allitem.translate,0,0,0)
-            elif axis == 'x':
-                pm.setAttr(item.translateX,l=False)
-                pm.setAttr(item.translateX,0)
-            elif axis == 'y':
-                pm.setAttr(item.translateY,l=False)
-                pm.setAttr(item.translateY,0)
-            elif axis == 'z':
-                pm.setAttr(item.translateZ,l=False)
-                pm.setAttr(item.translateZ,0)
-            else:
-                # pm.setAttr(item.translate,0,0,0,l=False)
-                # translateXとtranslateは重複して持つことができるぽい？
-                # 解除するときは両方解除する必要がある
-                pm.setAttr(item.translateX,l=False)
-                pm.setAttr(item.translateY,l=False)
-                pm.setAttr(item.translateZ,l=False)
-                pm.setAttr(item.translate,l=False)
-                pm.setAttr(item.translate,0,0,0)
-                print 'リセットして', pm.objectType(item)
-    changeSelected()
-    return
-
-#　回転リセット
-def resetRotate(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item) :
-            #全選択処理した場合、selectedでshapeが選択された状態になってしまうので、transformを選択した状態にリセットする処理
-            #原因がまだわかっていないので解明する。
-            if (not pm.objectType(item) == 'transform') and pm.objectType(pm.listRelatives(item, p=True)[0] ) == 'transform':
-                allitem = pm.listRelatives(item, p=True)[0]
-                # print 'ここに何がはいっているのか', pm.objectType(item)
-                if axis == 'x':
-                    pm.setAttr(allitem.rotateX,l=False)
-                    pm.setAttr(allitem.rotateX,0)
-                elif axis == 'y':
-                    pm.setAttr(allitem.rotateY,l=False)
-                    pm.setAttr(allitem.rotateY,0)
-                elif axis == 'z':
-                    pm.setAttr(allitem.rotateZ,l=False)
-                    pm.setAttr(allitem.rotateZ,0)
-                else:
-                    pm.setAttr(allitem.rotateX,l=False)
-                    pm.setAttr(allitem.rotateY,l=False)
-                    pm.setAttr(allitem.rotateZ,l=False)
-                    pm.setAttr(allitem.rotate,l=False)
-                    pm.setAttr(allitem.rotate,0,0,0)
-            elif axis == 'x':
-                pm.setAttr(item.rotateX,l=False)
-                pm.setAttr(item.rotateX,0)
-            elif axis == 'y':
-                pm.setAttr(item.rotateY,l=False)
-                pm.setAttr(item.rotateY,0)
-            elif axis == 'z':
-                pm.setAttr(item.rotateZ,l=False)
-                pm.setAttr(item.rotateZ,0)
-            else:
-                # pm.setAttr(item.rotate,0,0,0,l=False)
-                # rotateXとrotateは重複して持つことができるぽい？
-                # 解除するときは両方解除する必要がある
-                pm.setAttr(item.rotateX,l=False)
-                pm.setAttr(item.rotateY,l=False)
-                pm.setAttr(item.rotateZ,l=False)
-                pm.setAttr(item.rotate,l=False)
-                pm.setAttr(item.rotate,0,0,0)
-                print 'リセットして', pm.objectType(item)
-    changeSelected()    
-    return
-                
-
-
-#　スケールリセット
-def resetScale(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item) :
-            if axis == 'x':
-                pm.setAttr(item.scaleX,1)
-            elif axis == 'y':
-                pm.setAttr(item.scaleY,1)
-            elif axis == 'z':
-                pm.setAttr(item.scaleZ,1)
-            else:
-                pm.setAttr(item.scale,1,1,1)
-
-
-# 移動のロック
-def lockTransform(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item):
-            if axis == 'x':
-                pm.setAttr(item.translateX,l=True)
-            elif axis == 'y':
-                pm.setAttr(item.translateY,l=True)
-            elif axis == 'z':
-                pm.setAttr(item.translateZ,l=True)
-            else:
-                pm.setAttr(item.translate,l=True)
-    #  item.t or item.translateどちらでも可
-          
-# 回転のロック
-def lockRotate(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item):
-            if axis == 'x':
-                pm.setAttr(item.rotateX,l=True)
-            elif axis == 'y':
-                pm.setAttr(item.rotateY,l=True)
-            elif axis == 'z':
-                pm.setAttr(item.rotateZ,l=True)
-            else:
-                pm.setAttr(item.rotate,l=True)
-
-# スケールのロック
-def lockScale(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item):
-            if axis == 'x':
-                pm.setAttr(item.scaleX,l=True)
-            elif axis == 'y':
-                pm.setAttr(item.scaleY,l=True)
-            elif axis == 'z':
-                pm.setAttr(item.scaleZ,l=True)
-            else:
-                pm.setAttr(item.scale,l=True)
-
-
-# 移動のアンロック
-def unlockTransform(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item):
-            if axis == 'x':
-                pm.setAttr(item.translateX,l=False)
-            elif axis == 'y':
-                pm.setAttr(item.translateY,l=False)
-            elif axis == 'z':
-                pm.setAttr(item.translateZ,l=False)
-            else:
-                pm.setAttr(item.translate,l=False)
-    #  item.t or item.translateどちらでも可
-          
-# 回転のアンロック
-def unlockRotate(axis=None):
-    selectList = pm.selected()
-    for item in selectList:
-        if rigCheck(item):
-            if axis == 'x':
-                pm.setAttr(item.rotateX,l=False)
-            elif axis == 'y':
-                pm.setAttr(item.rotateY,l=False)
-            elif axis == 'z':
-                pm.setAttr(item.rotateZ,l=False)
-            else:
-                pm.setAttr(item.rotate,l=False)
-
-#シェイプを持ってるかチェック。シェイプがある場合nurbsCurveかチェック　(Bool)
-def rigCheck(obj):
-    print 'チェック開始'
-    if pm.objectType(obj) == 'nurbsCurve': #obj.getChildren()の場合、transformじゃなくてshapeが取れるっぽい？よくわからない。getparentの場合、この処理は必要ない。なぜ？
-        return True
-    if pm.objectType(obj) == 'transform' and obj.getShape(): #オブジェクトタイプがtransform かつシェイプを持っている場合。'transform'の条件式付け足すと上手くいくっぽい理由がわからない。
+    def objTypePrint():
+        obj = pm.selected()[0]
+        # obj = pm.selected()
         shape = obj.getShape()
-        if pm.objectType(shape) == 'nurbsCurve':
-            return True
-        else :
-            return False 
-    else :
-        return False
+        objtype = pm.objectType(shape)
+        # nodetype = pm.nodeType(obj, api=True)
+        nodetype = pm.nodeType(obj)
+        print 'オブジェクトタイプを返却します', objtype, 'ノードタイプを返却します'
+        # print pm.getAttr(obj)
+
+
+    def getParent():
+        prevRig = None
+        obj = pm.selected()[len(pm.selected())-1]
+        print '現在選択されているオブジェクト', obj
+        parent = obj.getParent()
+        while (parent):
+            if rigCheck(parent):
+                prevRig = parent
+                break
+            parent = parent.getParent()
+    
+        parent = parent.getParent()
+        while (parent): #次に選択するリグが一番親かどうかを確認する処理
+            if rigCheck(parent):
+                break
+            parent = parent.getParent()
+        if parent:
+            pm.select(prevRig, add=True)
+            print 'こいつの親はメインでないです', prevRig
+        else: 
+            print 'こいつの親はメインだす' 
+        return
+
+    def getAllRig(root):
+        obj = pm.selected()[len(pm.selected())-1]
+        parent = obj.getParent()
+        latestRig = obj
+        while (parent):
+            if rigCheck(parent):
+                latestRig = parent
+            parent = parent.getParent()
+        print 'ここにメインが入ってないとおかしいよなぁ！？', latestRig 
+        children = latestRig.getChildren()
+        if not root and len(children):
+            children.pop(0)   
+        loopAllChildren(children)
+        
+        return
+
+    def getAllParents():
+        obj = pm.selected()[0]
+        #最上階層までの全ての親を取得
+        print '最上階層までの全ての親を取得' , obj.getAllParents()
+
+
+    def getRoot():
+        obj = pm.selected()[0]
+        #ルートノードを取得
+        root = obj.root()
+        print 'ルートノードを取得' , root
+        return root
+
+
+    def getSiblings():
+        obj = pm.selected()[0]
+        #同じ階層を取得
+        print '同じ階層を取得' , obj.getSiblings()
+
+    def getChildren():
+        #子階層を取得
+        obj = pm.selected()[len(pm.selected())-1]
+        print '現在選択されているオブジェクト', obj
+        children = obj.getChildren()
+        # children=pm.listRelatives(obj)
+        if len(children):
+            children.pop(0)
+        # for child in children:
+        #     if child.nodeType() == "transform":
+        #         mask.append(child)
+        #     print 'チルドレン', child.nodeType()    
+        print 'チルドレン', children
+
+        loopChildren(children)
+
+    def loopChildren(childList): #子要素の再帰処理用関数
+        for child in childList:
+            if rigCheck(child):
+                # child = pm.listRelatives(child, p=True)[0]
+                print 'childの中身はなんじゃらほい', child
+                pm.select(child, add=True)
+            else:
+                loopChildren(child.getChildren())
+        return
+
+    def loopAllChildren(childList): #子要素の再帰処理用関数全部選択バージョン
+        for child in childList:
+            if rigCheck(child):
+                # child = pm.listRelatives(child, p=True)[0]
+                print 'childの中身はなんじゃらほい', child    
+                pm.select(child, add=True)
+                loopAllChildren(child.getChildren())
+            else:
+                loopAllChildren(child.getChildren())
+        return
+
+
+    def createParentCubeSphere():
+        # | による親子付け
+
+        #トランスフォームノードとシェイプノードのリストが返ってくるため、[0]で一つ目の要素のみ受け取っています
+        myCube = pm.polyCube()[0]
+        #同じく
+        mySphere = pm.polySphere()[0]
+        #親子付け
+        myCube | mySphere
+
+        #階層化されているか確認
+        print '階層化の確認', mySphere.name( long=True)
+
+
+    #新機能のテスト
+    # 原点へ移動
+    def zeroTransform():
+        obj = pm.selected()[0]
+        pm.move(obj,0,0,0,a=False)
+
+    #　ポジションリセット
+    def resetTranslate(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item) : #選択されているのがリグの場合
+                # itemに別の値を代入すると.translateプロパティが取得できなくのるので、allitemという別の変数を作る必要がある。
+                if (not pm.objectType(item) == 'transform') and pm.objectType(pm.listRelatives(item, p=True)[0] ) == 'transform':
+                    allitem = pm.listRelatives(item, p=True)[0]
+                    # print 'ここに何がはいっているのか', pm.objectType(item)
+                    if axis == 'x':
+                        pm.setAttr(allitem.translateX,l=False)
+                        pm.setAttr(allitem.translateX,0)
+                    elif axis == 'y':
+                        pm.setAttr(allitem.translateY,l=False)
+                        pm.setAttr(allitem.translateY,0)
+                    elif axis == 'z':
+                        pm.setAttr(allitem.translateZ,l=False)
+                        pm.setAttr(allitem.translateZ,0)
+                    else:
+                        pm.setAttr(allitem.translateX,l=False)
+                        pm.setAttr(allitem.translateY,l=False)
+                        pm.setAttr(allitem.translateZ,l=False)
+                        pm.setAttr(allitem.translate,l=False)
+                        pm.setAttr(allitem.translate,0,0,0)
+                elif axis == 'x':
+                    pm.setAttr(item.translateX,l=False)
+                    pm.setAttr(item.translateX,0)
+                elif axis == 'y':
+                    pm.setAttr(item.translateY,l=False)
+                    pm.setAttr(item.translateY,0)
+                elif axis == 'z':
+                    pm.setAttr(item.translateZ,l=False)
+                    pm.setAttr(item.translateZ,0)
+                else:
+                    # pm.setAttr(item.translate,0,0,0,l=False)
+                    # translateXとtranslateは重複して持つことができるぽい？
+                    # 解除するときは両方解除する必要がある
+                    pm.setAttr(item.translateX,l=False)
+                    pm.setAttr(item.translateY,l=False)
+                    pm.setAttr(item.translateZ,l=False)
+                    pm.setAttr(item.translate,l=False)
+                    pm.setAttr(item.translate,0,0,0)
+                    print 'リセットして', pm.objectType(item)
+        changeSelected()
+        return
+
+    #　回転リセット
+    def resetRotate(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item) :
+                #全選択処理した場合、selectedでshapeが選択された状態になってしまうので、transformを選択した状態にリセットする処理
+                #原因がまだわかっていないので解明する。
+                if (not pm.objectType(item) == 'transform') and pm.objectType(pm.listRelatives(item, p=True)[0] ) == 'transform':
+                    allitem = pm.listRelatives(item, p=True)[0]
+                    # print 'ここに何がはいっているのか', pm.objectType(item)
+                    if axis == 'x':
+                        pm.setAttr(allitem.rotateX,l=False)
+                        pm.setAttr(allitem.rotateX,0)
+                    elif axis == 'y':
+                        pm.setAttr(allitem.rotateY,l=False)
+                        pm.setAttr(allitem.rotateY,0)
+                    elif axis == 'z':
+                        pm.setAttr(allitem.rotateZ,l=False)
+                        pm.setAttr(allitem.rotateZ,0)
+                    else:
+                        pm.setAttr(allitem.rotateX,l=False)
+                        pm.setAttr(allitem.rotateY,l=False)
+                        pm.setAttr(allitem.rotateZ,l=False)
+                        pm.setAttr(allitem.rotate,l=False)
+                        pm.setAttr(allitem.rotate,0,0,0)
+                elif axis == 'x':
+                    pm.setAttr(item.rotateX,l=False)
+                    pm.setAttr(item.rotateX,0)
+                elif axis == 'y':
+                    pm.setAttr(item.rotateY,l=False)
+                    pm.setAttr(item.rotateY,0)
+                elif axis == 'z':
+                    pm.setAttr(item.rotateZ,l=False)
+                    pm.setAttr(item.rotateZ,0)
+                else:
+                    # pm.setAttr(item.rotate,0,0,0,l=False)
+                    # rotateXとrotateは重複して持つことができるぽい？
+                    # 解除するときは両方解除する必要がある
+                    pm.setAttr(item.rotateX,l=False)
+                    pm.setAttr(item.rotateY,l=False)
+                    pm.setAttr(item.rotateZ,l=False)
+                    pm.setAttr(item.rotate,l=False)
+                    pm.setAttr(item.rotate,0,0,0)
+                    print 'リセットして', pm.objectType(item)
+        changeSelected()    
+        return
+                    
+
+
+    #　スケールリセット
+    def resetScale(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item) :
+                if axis == 'x':
+                    pm.setAttr(item.scaleX,1)
+                elif axis == 'y':
+                    pm.setAttr(item.scaleY,1)
+                elif axis == 'z':
+                    pm.setAttr(item.scaleZ,1)
+                else:
+                    pm.setAttr(item.scale,1,1,1)
+
+
+    # 移動のロック
+    def lockTransform(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item):
+                if axis == 'x':
+                    pm.setAttr(item.translateX,l=True)
+                elif axis == 'y':
+                    pm.setAttr(item.translateY,l=True)
+                elif axis == 'z':
+                    pm.setAttr(item.translateZ,l=True)
+                else:
+                    pm.setAttr(item.translate,l=True)
+        #  item.t or item.translateどちらでも可
+            
+    # 回転のロック
+    def lockRotate(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item):
+                if axis == 'x':
+                    pm.setAttr(item.rotateX,l=True)
+                elif axis == 'y':
+                    pm.setAttr(item.rotateY,l=True)
+                elif axis == 'z':
+                    pm.setAttr(item.rotateZ,l=True)
+                else:
+                    pm.setAttr(item.rotate,l=True)
+
+    # スケールのロック
+    def lockScale(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item):
+                if axis == 'x':
+                    pm.setAttr(item.scaleX,l=True)
+                elif axis == 'y':
+                    pm.setAttr(item.scaleY,l=True)
+                elif axis == 'z':
+                    pm.setAttr(item.scaleZ,l=True)
+                else:
+                    pm.setAttr(item.scale,l=True)
+
+
+    # 移動のアンロック
+    def unlockTransform(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item):
+                if axis == 'x':
+                    pm.setAttr(item.translateX,l=False)
+                elif axis == 'y':
+                    pm.setAttr(item.translateY,l=False)
+                elif axis == 'z':
+                    pm.setAttr(item.translateZ,l=False)
+                else:
+                    pm.setAttr(item.translate,l=False)
+        #  item.t or item.translateどちらでも可
+            
+    # 回転のアンロック
+    def unlockRotate(axis=None):
+        selectList = pm.selected()
+        for item in selectList:
+            if rigCheck(item):
+                if axis == 'x':
+                    pm.setAttr(item.rotateX,l=False)
+                elif axis == 'y':
+                    pm.setAttr(item.rotateY,l=False)
+                elif axis == 'z':
+                    pm.setAttr(item.rotateZ,l=False)
+                else:
+                    pm.setAttr(item.rotate,l=False)
+
+
 
 #機能改善案
 # ロック機能：選択しているマニュピレータの種類によってロックをかける項目を切り替える。もう一度押すと解除
