@@ -142,17 +142,10 @@ def connectSmoothAttr():
     # pm.setDrivenKeyframe("%s.textInput" % divNum,cd = "%s.tx" % slider,dv=1.23,v=getSpacedHexFromString(str(4)))
 
 def createType(num):
-    # pm.curve(d=3,p=[(-10, 0, 0),(-6, 0, 10),(-3, 0, -10),(10, 0, 0)],k=[0, 0, 0, 1, 1, 1])
-    # tu.flipTypeManipulator()
     #typeオブジェクトの設定
-    # global div
     divNum = tt.createTypeTool()
-    # selectObj = pm.selected(div)[len(pm.selected())-1]
-    # select = div.getType()
     # print selectType
     numEncode = getSpacedHexFromString(str(num))
-    # text = pm.getAttr("%s.textInput" % div)
-    # text2 = pm.setAttr("%s.textInput" % div,test.encode('ascii'))
     pm.setAttr("%s.fontSize" % divNum,5)
     pm.setAttr("%s.textInput" % divNum,numEncode)
     # pm.setAttr("%s.typeExtrude1.enableExtrusion" % div,0)
@@ -178,21 +171,7 @@ def getInfo():
     i=1
     # cv = [pm.getAttr("%s.cv[%d]" % (selShape,i))]
     cv = [pm.getAttr("%s.cv[%d]" % (selShape,i))]
-    # knot = [pm.getAttr("%s.knot[%d]" %('curveInfo1',i))]
-    # while( not (pm.getAttr("%s.cv[%d]" % (selShape,i)) == pm.getAttr("%s.cv[%d]" % (selShape,i-1)))):
-    #     cvp = (pm.getAttr("%s.cv[%d]" % (selShape,i)))
-    #     cv.append(cvp)
-    #     print '中身はなんじゃらほい',cvp
-    #     i = i+1
-    # cv.append(pm.getAttr("%s.cv[%d]" % (selShape,i)))
     i=1
-
-    # while( not (pm.getAttr("%s.knot[%d]" % ('curveInfo1',i)) == pm.getAttr("%s.knot[%d]" % ('curveInfo1',i-1)))):
-    #     knotp = (pm.getAttr("%s.knot[%d]" % ('curveInfo1',i)))
-    #     knot.append(knotp)
-    #     print '中身はなんじゃらほい',knotp
-    #     i = i+1
-
     for i in range(0,9):
         cvp = (pm.getAttr("%s.cv[%d]" % (selShape,i)))
         cv.append(cvp)
