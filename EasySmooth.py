@@ -89,7 +89,7 @@ def createEasySmooth():
     pm.setDrivenKeyframe("%s.divisions" % ctl,cd = "%s.tx" % slider,dv=0,v=0)
     pm.setDrivenKeyframe("%s.divisions" % ctl,cd = "%s.tx" % slider,dv=1.23,v=4)
 
-with pm.window(title='イージースムーズ') as EasySmooth:
+with pm.window(title='イージースムーズ',width=250) as EasySmooth:
     with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
         with pm.horizontalLayout():
               pm.button( label='スムーズ' , command='print createEasySmooth()',bgc=[0.35,0.35,0.35])
