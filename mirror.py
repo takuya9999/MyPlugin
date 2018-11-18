@@ -4,11 +4,10 @@ with pm.window(title='インスタンスミラー') as objMirror:
     with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
         
         with pm.frameLayout(label='ミラー設定'):
-            # #ミラー軸の設定
+            # ミラー軸の設定
             mirrorCoordinate = pm.optionMenu(label='ミラーの位置: ',width=150)
             pm.menuItem(label='ワールド')
             pm.menuItem(label='オブジェクト')
-            # floatFieldGrp( label='オフセット: ', bgc=[0.3,0.3,0.3])
             mirrorAxis = pm.radioButtonGrp( numberOfRadioButtons=3, #radioButtonGrp: 最大4個１グループのラジオボタンを作成　numberOfRadioButtons:[nrb]の短縮系でも可。ラジオボタンの個数を指定。
             label='ミラー軸: ', #グループの名前
             labelArray3=['x','y','z'],
@@ -32,13 +31,11 @@ def toObj():
     #結合したオブジェクトのピボットを設定
     newSelectObj[0].scalePivot.set(prevSelectObjSP)
     newSelectObj[0].rotatePivot.set(prevSelectObjRP)
-    print 'ピボット', newSelectObj[0].scalePivot.get()
     #結合した選択オブジェクトの中心点を取る処理
     sBbox = pm.exactWorldBoundingBox(newSelectObj)
     sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
     #結合した選択オブジェクトのピボットを取る処理    
     pivot = newSelectObj[0].scalePivot.get()
-    print 'ピボット',pivot
     #ミラーに関する情報の取得
     mirrorInfo = getScaleAxis(sBboxP,pivot)
     #複製してリネームする処理
@@ -63,25 +60,18 @@ def createMirror():
     if mirrorCoordinate.getSelect() == 1 : #ワールド中心
         pivot = [0,0,0]
         mirrorInfo = getScaleAxis(sBboxP,pivot)
-        print 'これはワールドですか？いいえ、違います。'
     else : #オブジェクト中心
         pivot = cBboxP
         mirrorInfo = getScaleAxis(sBboxP,pivot)
-        print 'オブジェクトでーーーーーーす',cBboxP
-    print 'これ絶対取れないやつ',mirrorCoordinate.getSelect()
     # 選択オブジェクトのグループ化
     grpObj = pm.group(selectObj,n=selectObj+mirrorInfo['sNameTail'])
     # 選択オブジェクトグループのインスタンスの作成
     instanceGrpObj = pm.instance(grpObj,n=selectObj+mirrorInfo['nNameTail'])
-    print 'ワールド取れててくれー！頼む！',mirrorCoordinate.getValue()
     pm.scale(mirrorInfo['mirrorScale'],p=pivot)
     #親グループの作成
     pm.group(grpObj,instanceGrpObj,n=prevObj+'_Mirror')
     
-    print mirrorCoordinate.getValue(), mirrorAxis.getSelect()
-
     #リネーム処理の正規表現を実装する
-    #選択オブジェクトの中心点を取って対象オブジェクトの中心点と比較し、右ならR,左ならLを振る処理の追加
     # オブジェクトの複数選択に対応する
 
 def getScaleAxis(sBboxP,pivot):
