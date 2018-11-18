@@ -20,9 +20,6 @@ def openCurrentScene():
         arg=['Explorer', currentPath.replace('/','\\')]
     subprocess.call(arg)
 
-
-
-
 #現在指定しているイメージファイルの置き場所をエクスプローラで開く
 def openCurrentImage():
     myNode = pm.selected()
@@ -33,16 +30,13 @@ def openCurrentImage():
     myName = pm.getAttr( "%s.imageName" % imagePlaneName) #imagePlaneName.imageNameでもとれないか試す
     currentDir = os.path.dirname(myName) #イメージデータフォルダのパス
     currentPathReplace = currentDir.replace('/','\\')
-    # unicode(currentPathReplace,'cp932')
     arg=['Explorer', currentPathReplace.encode('cp932')]
-    # arg =['Explorer', currentDir.replace('/','\\')]
     print arg
     subprocess.call(arg)
 
-
 def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', startNum = 1):
     
-    if dirName == '':
+    if dirName == '': #ディレクトリ名がない場合は実行できないようにする
         return
 
     myNode = pm.selected()
@@ -59,17 +53,10 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
     new_dir_name = dirName
     new_file_name = fileName + '.'
 
-    #MAYAのシーケンサーは連番の先頭に必ず.がついてないといけないので、この処理は必要なし。
-    # if  not (new_file_name == ''):
-    #     print 'ファイル名指定されてるよ！'
-    #     new_file_name = new_file_name + '.'
-    #     print new_file_name
-
     if not sameDirFlag:
         new_file_name = dirName + '.'
 
     new_dir_path = currentDir + '/'+ new_dir_name
-
 
     #カレントディレクトリの下に新しいディレクトリを作って画像データをコピーする処理
     if __name__ == '__main__':
@@ -80,13 +67,8 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
         for files in os.listdir(currentDir):
             if mimetypes.guess_type(files)[0] == file_type:
                 arr.append(files)
-                # print files
-                # Copy
+                # ファイルのコピー
                 shutil.copy(currentDir+'/'+files, new_dir_path)
-                # Move
-                # shutil.move(files, new_dir_path)
-        # print(arr)
-
 
     # 更新日時順に画像ファイルを連番でリネームする処理
     if __name__ == '__main__':
@@ -107,23 +89,8 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
             shutil.move(child_dir + file_name, child_dir + new_name)
             ind += 1
             print ind
-
-    #置換リネーム処理
-    # if __name__ == '__main__':
-    #     print 'test2'
-    #     arr = []
-    #     child_dir = new_dir_path+'/'
-    #     regex = re.compile('battle')
-    #     for file_name in os.listdir(new_dir_path):
-    #         if file_name.endswith('.JPG'):
-    #             arr.append(file_name)
-    #             new_name = regex.sub('pic', file_name)
-    #             print(new_name)
-    #             shutil.move(child_dir + file_name, child_dir + new_name)
-
-
+    #イメージプレーンのイメージパスの更新
     pm.setAttr( "%s.imageName" % imagePlaneName, new_dir_path + '/' + new_file_name + str(start_num).zfill(5) + '.jpg')
-    # return subprocess.call(arg)
 
 with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as testWin:
     with pm.columnLayout( adjustableColumn=True):
@@ -151,8 +118,3 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         # pm.button( label='printselectItem' , command='print pm.selected()')
         pm.button( label='デバッグ用' , command='print newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0] ')
         pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
-
-
-
-        
-#マルチバイト対応一応完了
