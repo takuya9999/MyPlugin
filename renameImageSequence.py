@@ -116,5 +116,4 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         pm.separator()
         pm.button( label='フォルダを開く' , command='openCurrentImage()')
         # pm.button( label='printselectItem' , command='print pm.selected()')
-        pm.button( label='デバッグ用' , command='print newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0] ')
         pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
