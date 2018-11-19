@@ -31,8 +31,8 @@ def generateCurve(currentSel):
     smoothParentGroup.scalePivot.set([0,0,0])
     smoothParentGroup.rotatePivot.set([0,0,0])
     pm.xform(smoothParentGroup,t=sBboxP)
-
-    return [slider,sliderFIeld]
+    pm.pointConstraint(currentSel,smoothParentGroup,mo=True)
+    return [slider,sliderFIeld,smoothParentGroup]
 
 def generateChildCurve(currentSel):
     curvelist = []
@@ -56,6 +56,8 @@ def generateChildCurve(currentSel):
     smoothParentGroup.scalePivot.set([0,0,0])
     smoothParentGroup.rotatePivot.set([0,0,0])
     pm.xform(smoothParentGroup,t=sBboxP)
+    pm.pointConstraint(currentSel,smoothParentGroup,mo=True)
+    return smoothParentGroup
 #複数オブジェクトにスムースをかけ、分割数をコントローラで一括制御できるようにする。
 def createEasySmooth():
     sel = pm.selected()
@@ -63,10 +65,11 @@ def createEasySmooth():
     cruveGen = generateCurve(sel[-1])
     slider = cruveGen[0]
     sliderField = cruveGen[1]
+    smoothCtls = [cruveGen[2]]
     ctl = sliderField
-
     for currentSel in (sel[:-1]):
-        generateChildCurve(currentSel)
+        smoothCtls.append(generateChildCurve(currentSel))
+    pm.group(smoothCtls,n=smoothCtls[0]+'_Group' )
     # ctl = sel[-1] #[-1]で要素の末尾を取得
     #新しいアトリビュートを作成する
     pm.addAttr( ctl, ln='divisions',nn='div',at='long',min=0,max=4,dv=0)
