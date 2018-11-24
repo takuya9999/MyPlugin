@@ -84,9 +84,9 @@ def createEasySmooth():
                 break
         if smthChk:
             ctlDiv >> cnct.divisions #すでにスムースノードがある場合は、それをctlDivアトリビュートと接続
-            continue #すでにスムースノードがある場合、以降の処理をスキップ
-        smthNode = pm.polySmooth(obj) #objに新しくスムースを追加し
-        ctlDiv >> smthNode[0].divisions #スムースノードのdivisionsアトリビュートとctlのdivisionアトリビュート(ctlDiv)をつなぐ
+        else :
+            smthNode = pm.polySmooth(obj) #objに新しくスムースを追加し
+            ctlDiv >> smthNode[0].divisions #スムースノードのdivisionsアトリビュートとctlのdivisionアトリビュート(ctlDiv)をつなぐ
     
     pm.transformLimits(slider,tx=(0,1.23),etx=(True,True))
     pm.setDrivenKeyframe("%s.divisions" % ctl,cd = "%s.tx" % slider,dv=0,v=0)
