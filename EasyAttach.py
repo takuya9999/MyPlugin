@@ -10,7 +10,8 @@ def attachObj(axis):
         pm.parentConstraint(toSelectObj,fromSelectObj, weight=1,skipRotate=['x','y','z'])
     elif axis == 1: #ローカル    
         pm.parentConstraint(toSelectObj,fromSelectObj, weight=1)
-    pm.delete(fromSelectObj,constraints=True)
+    delNode = fromSelectObj.listRelatives(c=True,ad=True,type='constraint')
+    pm.delete(delNode)
 
 def createLocate(axis):
     toSelectObj = pm.selected()[len(pm.selected())-1]
