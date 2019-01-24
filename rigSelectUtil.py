@@ -2,6 +2,7 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 chankflag=False
+enableChangeSelect = True
 #シェイプを持ってるかチェック。シェイプがある場合nurbsCurveかチェック　(Bool)
 def rigCheck(obj):
     print 'チェック開始'
@@ -200,6 +201,8 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
         #     translateBoxGrp.setValueArray4(locklist)
 
         def changeSelected():
+            if not enableChangeSelect:
+                return
             if pm.selected():
                 e = pm.selected()[len(pm.selected())-1]
                 # checkRotate()
@@ -470,6 +473,7 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
         return
 
     def getAllRig(root):
+        # enableChangeSelect = False
         obj = pm.selected()[len(pm.selected())-1]
         parent = obj.getParent()
         latestRig = obj
@@ -483,7 +487,7 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
             children.pop(0)   
         loopAllChildren(children)
         
-        return
+        
 
     def getAllParents():
         obj = pm.selected()[0]
