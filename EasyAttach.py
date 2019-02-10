@@ -32,7 +32,7 @@ def createJointOffset(Offset):
     for joint in selectJoints: 
         offsetObjName = ""
         if prefix.getSelect() == 1: #置き換え
-            offsetObjName = re.sub(r"[a-zA-Z]*?_",Offset+"_",str(joint))
+            offsetObjName = re.sub(r"^[a-zA-Z]*?_",Offset+"_",str(joint))
         elif prefix.getSelect() == 2: #追加
             offsetObjName = str(Offset) + "_" + str(joint)  
         offsetObj = pm.group(em = True,name = offsetObjName)
