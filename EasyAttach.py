@@ -30,21 +30,14 @@ def createJointOffset(Offset):
     selectJoints = pm.selected()
 
     for joint in selectJoints: 
-        #AにBをコンストレイント！
-        # offsetObjName = joint.replace("Jit","Offset")
         offsetObjName = ""
         if prefix.getSelect() == 1: #置き換え
             offsetObjName = re.sub(r"[a-zA-Z]*?_",Offset+"_",str(joint))
-        elif prefix.getSelect() == 2:
+        elif prefix.getSelect() == 2: #追加
             offsetObjName = str(Offset) + "_" + str(joint)  
-        # offsetObjName = joint.replace(str(Jit),str(Offset)) 
-        # print '名前のreplaceの確認', offsetObjName, Offset
         offsetObj = pm.group(em = True,name = offsetObjName)
+        #AにBをコンストレイント！
         pm.parentConstraint(joint,offsetObj, weight=1)
-        # if axis == 0: #ワールド
-        #     pm.parentConstraint(toSelectObj,fromSelectObj, weight=1,skipRotate=['x','y','z'])
-        # elif axis == 1: #ローカル    
-        #     pm.parentConstraint(toSelectObj,fromSelectObj, weight=1)
         #必要のないコンストレイントノードの削除
         delNode = offsetObj.listRelatives(c=True,ad=True,type='constraint')
         pm.delete(delNode)
