@@ -22,35 +22,38 @@ with pm.window(title='インスタントミラー') as objMirror:
 
 def toObjLegacy():
     selectObj = pm.selected()
+    
     #選択オジェクトの名前を文字列で取得
     prevSelectObjN = str(selectObj[len(pm.selected())-1])
+    
     #選択オブジェクト(ミラーオブジェクトの軸となる親階層)のピボット(スケール、回転)の取得
     prevSelectObjSP = selectObj[len(pm.selected())-1].scalePivot.get()
     prevSelectObjRP = selectObj[len(pm.selected())-1].rotatePivot.get()
-    print "ピボット取れていたい", prevSelectObjRP
+
     #結合して一つにしたオブジェクト([transfrom,polyunite]の配列オブジェクト) chでヒストリを削除しておく
     newSelectObj = pm.polyUnite(selectObj,n=prevSelectObjN,ch=False)
-    
-    # newSelectObj = pm.runtime.ConvertInstanceToObject(selectObj,n=prevSelectObjN,ch=False)
-    # newSelectObj = pm.selected()
-    print "値の確認",newSelectObj
     
     #結合したオブジェクトのピボットを設定
     newSelectObj[0].scalePivot.set(prevSelectObjSP)
     newSelectObj[0].rotatePivot.set(prevSelectObjRP)
+    
     #結合した選択オブジェクトの中心点を取る処理
     sBbox = pm.exactWorldBoundingBox(newSelectObj)
     sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
+    
     #結合した選択オブジェクトのピボットを取る処理    
     pivot = newSelectObj[0].scalePivot.get()
+    
     #ミラーに関する情報の取得
-    print "sBboxP,pivotの値の確認",sBboxP, pivot
     mirrorInfo = getScaleAxis(sBboxP,pivot)
+    
     #複製してリネームする処理
     duplicateObj = pm.duplicate(newSelectObj[0],n=prevSelectObjN+mirrorInfo['nNameTail'])
     pm.rename(newSelectObj[0],prevSelectObjN+mirrorInfo['sNameTail'])
+    
     #ミラー配置する処理
     pm.scale(mirrorInfo['mirrorScale'],p=pivot)
+    
     #ヒストリとグループノードの残骸の削除
     pm.delete(prevSelectObjN)
 
@@ -59,9 +62,7 @@ def toObj():
     selectObj = pm.selected()
     #選択オジェクトの名前を文字列で取得
     prevSelectObjN = str(selectObj[len(pm.selected())-1])
-    print "正規表現てすと前", prevSelectObjN
     prevSelectObjN = re.sub(r".*\|","",str(prevSelectObjN))
-    print "正規表現てすと", prevSelectObjN
     #選択オブジェクトのピボット(スケール、回転)の取得
     parentObj = selectObj[len(pm.selected())-1].getParent()
     pParentObj = parentObj.getParent()
@@ -73,21 +74,16 @@ def toObj():
     pPbox = pm.exactWorldBoundingBox(pParentObj)
     #親の親要素のバウンディングボックスの中心点の取得
     pPboxP =  [(pPbox[0] + pPbox[3])/2, (pPbox[1] + pPbox[4])/2, (pPbox[2] + pPbox[5])/2]
-
+    #選択オブジェクトの複製
     newSelectObj = pm.duplicate(selectObj[len(pm.selected())-1],n=prevSelectObjN)
     
-    print "pPPの中身はこれ。",pPParentObj
-    #親グループの作成
+    #親グループの作成。ミラーグループに親がいない場合はワールドにオブジェクトを作成する。
     if pPParentObj != None:
-        pm.parent(newSelectObj,pPParentObj) #複数階層のオブジェクト化にも対応したい。
-        print "pPPあるよ"
+        pm.parent(newSelectObj,pPParentObj)
     else :
         pm.parent(newSelectObj,w=True)
-        print "pPPないよ"
     pm.parent(pParentObj, rm=True)
-    print "値の確認",newSelectObj
     
-   
     #結合した選択オブジェクトの中心点を取る処理
     sBbox = pm.exactWorldBoundingBox(newSelectObj[0])
     sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
