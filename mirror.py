@@ -65,6 +65,7 @@ def toObj():
     #選択オブジェクトのピボット(スケール、回転)の取得
     parentObj = selectObj[len(pm.selected())-1].getParent()
     pParentObj = parentObj.getParent()
+    pPParentObj = pParentObj.getParent()
     prevSelectObjSP = pParentObj.scalePivot.get()
     prevSelectObjRP = pParentObj.rotatePivot.get()
 
@@ -73,18 +74,11 @@ def toObj():
     #親の親要素のバウンディングボックスの中心点の取得
     pPboxP =  [(pPbox[0] + pPbox[3])/2, (pPbox[1] + pPbox[4])/2, (pPbox[2] + pPbox[5])/2]
 
-
-    print "ピボット取れていたい", prevSelectObjRP
-
-    #結合して一つにしたオブジェクト([transfrom,polyunite]の配列オブジェクト) chでヒストリを削除しておく
-    print "ピボット取れていたい", prevSelectObjRP
-
     newSelectObj = pm.duplicate(selectObj[len(pm.selected())-1],n=prevSelectObjN)
-    print "ピボット取れていたい", prevSelectObjRP
-    
     
     #親グループの作成
     pm.parent(newSelectObj,w=True)
+    # pm.parent(newSelectObj,pPParentObj) #複数階層のオブジェクト化にも対応したい。これではできない。
     pm.parent(pParentObj, rm=True)
     print "値の確認",newSelectObj
     
@@ -114,15 +108,6 @@ def toObj():
     pm.xform(cp=True)
     pm.select(newSelectObj[0])
     pm.xform(cp=True)
-
-
-
-    
-    #ヒストリとグループノードの残骸の削除
-    # pm.delete(prevSelectObjN) #こいつのせいでunicodeencodeerrorがでる。
-    # pm.delete(pParentObj)　#こいつのせいでunicodeencodeerrorがでる。
-
-
 
 def createMirror():
     # 選択オブジェクト
