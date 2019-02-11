@@ -76,9 +76,14 @@ def toObj():
 
     newSelectObj = pm.duplicate(selectObj[len(pm.selected())-1],n=prevSelectObjN)
     
+    print "pPPの中身はこれ。",pPParentObj
     #親グループの作成
-    pm.parent(newSelectObj,w=True)
-    # pm.parent(newSelectObj,pPParentObj) #複数階層のオブジェクト化にも対応したい。これではできない。
+    if pPParentObj != None:
+        pm.parent(newSelectObj,pPParentObj) #複数階層のオブジェクト化にも対応したい。
+        print "pPPあるよ"
+    else :
+        pm.parent(newSelectObj,w=True)
+        print "pPPないよ"
     pm.parent(pParentObj, rm=True)
     print "値の確認",newSelectObj
     
@@ -127,12 +132,25 @@ def createMirror():
     else : #オブジェクト中心
         pivot = cBboxP
         mirrorInfo = getScaleAxis(sBboxP,pivot)
+    
+    # 選択オブジェクトのフリーズ処理 フリーズしたほうが良いのか悪いのか判断難しい。しない方がいい場合もありそう。
+    pm.makeIdentity(selectObj,apply=True,t=1,r=1,s=1,n=0,pn=1)
+    
     # 選択オブジェクトのグループ化
     grpObj = pm.group(selectObj,n=selectObj+mirrorInfo['sNameTail'])
+
     # 選択オブジェクトグループのインスタンスの作成
     instanceGrpObj = pm.instance(grpObj,n=selectObj+mirrorInfo['nNameTail'])
-    pm.scale(mirrorInfo['mirrorScale'],p=pivot)
-    #親グループの作成
+    
+    #　反転（ミラー）処理xormのwsだとオブジェクトのローカル軸基準で変換してるっぽい？何故かわからない。
+    pm.select(instanceGrpObj)
+    pm.xform(scale = mirrorInfo['mirrorScale'],scalePivot=pivot,ws=True)
+    
+    #scaleのドキュメントにwsないけどつけるとワールド軸でスケールがかかってるっぽい。でも思ったような結果にならない。
+    # pm.scale(mirrorInfo['mirrorScale'],p=pivot,ws=True) 
+    # pm.scale(mirrorInfo['mirrorScale'],p=pivot) 
+    
+    #親グループの作成 あり、なしで選択できるようにした方がいいかも。
     pm.group(grpObj,instanceGrpObj,n=prevObj+'_Mirror')
     
     #リネーム処理の正規表現を実装する
