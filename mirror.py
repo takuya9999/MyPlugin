@@ -1,6 +1,6 @@
 import pymel.core as pm
 import re
-with pm.window(title='インスタンスミラー') as objMirror:
+with pm.window(title='インスタントミラー') as objMirror:
     with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
         
         with pm.frameLayout(label='ミラー設定'):
