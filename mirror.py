@@ -65,6 +65,7 @@ def toObj():
     prevSelectObjN = re.sub(r".*\|","",str(prevSelectObjN))
     #選択オブジェクトのピボット(スケール、回転)の取得
     parentObj = selectObj[len(pm.selected())-1].getParent()
+    parentObjSuffix = re.search(r"[^_]*_*$",str(parentObj))
     pParentObj = parentObj.getParent()
     pPParentObj = pParentObj.getParent()
     prevSelectObjSP = pParentObj.scalePivot.get()
@@ -92,7 +93,7 @@ def toObj():
    
     #ミラーに関する情報の取得
     print "sBboxP,pivotの値の確認",sBboxP, pivot
-    mirrorInfo = getScaleAxis(sBboxP,pivot)
+    mirrorInfo = getScaleAxisObj(sBboxP,pivot,parentObjSuffix.group())
    
     #複製してリネームする処理
     #sName=オリジナル,nName=複製オブジェクトのこと
@@ -182,5 +183,34 @@ def getScaleAxis(sBboxP,pivot):
             nNameTail = '_B'
     return {'sNameTail':sNameTail,'nNameTail':nNameTail,'mirrorScale':mirrorScale}
 
+def getScaleAxisObj(sBboxP,pivot,parentObjSuffix):
+    if parentObjSuffix == 'L' or parentObjSuffix == 'R': #X軸対象
+        mirrorScale = [-1,1,1]
+        if sBboxP[0] < pivot[0]:
+            sNameTail = '_R'
+            nNameTail = '_L'
+        else :
+            sNameTail = '_L'
+            nNameTail = '_R'
+    elif parentObjSuffix == 'Bottom' or parentObjSuffix == 'Top': #y軸対象
+        mirrorScale = [1,-1,1]
+        if sBboxP[1] < pivot[1]:
+            sNameTail = '_Bottom'
+            nNameTail = '_Top'
+        else :
+            sNameTail = '_Top'
+            nNameTail = '_Bottom'
+    elif parentObjSuffix == 'B' or parentObjSuffix == 'F': #z軸対象
+        mirrorScale = [1,1,-1]
+        if sBboxP[2] < pivot[2]:
+            sNameTail = '_B'
+            nNameTail = '_F'
+        else :
+            sNameTail = '_F'
+            nNameTail = '_B'
+    return {'sNameTail':sNameTail,'nNameTail':nNameTail,'mirrorScale':mirrorScale}
+
+
+
     #ミラーしたオブジェクトを更にミラーしたケースにも対応できるようにする。
-    #オブジェクト化の際の軸をラジオボックスでの指定ではなくインスタンスの情報を元にオブジェクト化する軸を決定できるようにする。
+    #現状、応急処置的にオブジェクト化の際の軸を親要素のサフィックスで判別しているが、将来的にはインスタンスの情報をもとにオブジェクト化する軸を決定するようにする。
