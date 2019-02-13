@@ -97,6 +97,7 @@ def toObj():
     #複製してリネームする処理
     #sName=オリジナル,nName=複製オブジェクトのこと
     print "newSelectObj[0]の中身の確認",newSelectObj[0]
+    #フリーズ処理
     # pm.makeIdentity(newSelectObj[0],apply=True,t=1,r=1,s=1,n=0,pn=1)
     pm.makeIdentity(newSelectObj,apply=True,t=1,r=1,s=1,n=0,pn=1)
     
@@ -106,6 +107,8 @@ def toObj():
     print "pivotの値の確認", pivot
     pm.select(duplicateObj)
     pm.xform(scale = mirrorInfo['mirrorScale'],scalePivot=pivot,ws=True)
+    #複製オブジェクトのフリーズ
+    pm.makeIdentity(duplicateObj,apply=True,t=1,r=1,s=1,n=0,pn=1)
     pm.xform(cp=True)
     pm.select(newSelectObj[0])
     pm.xform(cp=True)
@@ -156,11 +159,11 @@ def getScaleAxis(sBboxP,pivot):
     if mirrorAxis.getSelect() == 1: #X軸対象
         mirrorScale = [-1,1,1]
         if sBboxP[0] < pivot[0]:
-            sNameTail = '_L'
-            nNameTail = '_R'
-        else :
             sNameTail = '_R'
             nNameTail = '_L'
+        else :
+            sNameTail = '_L'
+            nNameTail = '_R'
     elif mirrorAxis.getSelect() == 2: #y軸対象
         mirrorScale = [1,-1,1]
         if sBboxP[1] < pivot[1]:
@@ -172,9 +175,12 @@ def getScaleAxis(sBboxP,pivot):
     elif mirrorAxis.getSelect() == 3: #z軸対象
         mirrorScale = [1,1,-1]
         if sBboxP[2] < pivot[2]:
-            sNameTail = '_L'
-            nNameTail = '_R'
+            sNameTail = '_B'
+            nNameTail = '_F'
         else :
-            sNameTail = '_R'
-            nNameTail = '_L'
+            sNameTail = '_F'
+            nNameTail = '_B'
     return {'sNameTail':sNameTail,'nNameTail':nNameTail,'mirrorScale':mirrorScale}
+
+    #ミラーしたオブジェクトを更にミラーしたケースにも対応できるようにする。
+    #オブジェクト化の際の軸をラジオボックスでの指定ではなくインスタンスの情報を元にオブジェクト化する軸を決定できるようにする。
