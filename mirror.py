@@ -145,6 +145,7 @@ def createMirror():
     #　反転（ミラー）処理xormのwsだとオブジェクトのローカル軸基準で変換してるっぽい？何故かわからない。
     pm.select(instanceGrpObj)
     pm.xform(scale = mirrorInfo['mirrorScale'],scalePivot=pivot,ws=True)
+    pm.xform(cp=True)
     
     #scaleのドキュメントにwsないけどつけるとワールド軸でスケールがかかってるっぽい。でも思ったような結果にならない。
     # pm.scale(mirrorInfo['mirrorScale'],p=pivot,ws=True) 
@@ -212,5 +213,6 @@ def getScaleAxisObj(sBboxP,pivot,parentObjSuffix):
 
 
 
-    #ミラーしたオブジェクトを更にミラーしたケースにも対応できるようにする。
+    #ミラーしたオブジェクトを更にミラーした場合のオブジェクト化対応
+    #複数選択したオブジェクトをミラーした場合、一つ一つのオブジェクトに個別でミラー処理を適用する機能の追加。
     #現状、応急処置的にオブジェクト化の際の軸を親要素のサフィックスで判別しているが、将来的にはインスタンスの情報をもとにオブジェクト化する軸を決定するようにする。
