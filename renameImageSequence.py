@@ -5,6 +5,8 @@ import shutil
 import mimetypes
 import re
 import pymel.core as pm
+# from Pillow import Image
+import Pillow
 
 #現在開いているシーンの置き場所をエクスプローラで開く
 def openCurrentScene():
@@ -46,13 +48,18 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
         imagePlaneName = myNode[0].getShape() #選択したオブジェクトのアトリビュートが複数ある場合
     myName = pm.getAttr( "%s.imageName" % imagePlaneName)
     currentDir = os.path.dirname(myName) #イメージデータフォルダのパス
-    arg =['Explorer', currentDir.replace('/','\\')]
-    
+    print 'myNameで何が取得できているか確認。',myName
+    #現在使用している画像のファイルフォーマットを取得
+    currentImgName = currentDir + '/' + myName
+    img = Image.open(currentImgName)
+    imageFileFormat = img.format  
+    print 'イメージフォーマットの確認' , imageFileFormat
+
     # ユーザー入力情報
     start_num = startNum
     new_dir_name = dirName
     new_file_name = fileName + '.'
-
+    newImageFileFormat = 'bmp'
     if not sameDirFlag:
         new_file_name = dirName + '.'
 
@@ -60,7 +67,7 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
 
     #カレントディレクトリの下に新しいディレクトリを作って画像データをコピーする処理
     if __name__ == '__main__':
-        file_type = 'image/jpeg'
+        file_type = imageFileFormat
         if os.path.isdir(new_dir_path) is False: #指定したディレクトリパスが存在しない場合
             os.mkdir(new_dir_path) #新しくディレクトリを作成する
         arr = []
@@ -75,22 +82,28 @@ def getSelectedImagePlaneName(dirName='', sameDirFlag='True', fileName = '', sta
         # print 'test'
         arr = []
         child_dir = new_dir_path+'/'
+        # arrにファイルパス:ファイル名の連想配列を追加していく処理
         for file_name in os.listdir(new_dir_path):
             # print 'fortest'
-            if file_name.endswith('.jpg') or file_name.endswith('.JPG') : #JPGとjpgだと違う文字列扱いなので拡張子を指定するときは注意！
-                path = child_dir + file_name
-                arr.append((os.path.getmtime(path), file_name) )
+            # if file_name.endswith('.jpg') or file_name.endswith('.JPG') : #JPGとjpgだと違う文字列扱いなので拡張子を指定するときは注意！
+            path = child_dir + file_name
+            arr.append((os.path.getmtime(path), file_name) )
         ind = start_num
         print arr
+        #画像をソートしてファイル名に連番をつける処理
         for mtime,file_name in sorted(arr):
-            new_name = new_file_name + str(ind).zfill(5) + '.jpg' #JPGとjpgだと違う文字列扱いなので拡張子を指定するときは注意！
+            new_name = new_file_name + str(ind).zfill(5) + '.' + newImageFileFormat #JPGとjpgだと違う文字列扱いなので拡張子を指定するときは注意！
+            
+            img = Image.open(mtime)
+            img.save(child_dir + new_name,newImageFileFormat)
+            new_name 
             t = datetime.datetime.fromtimestamp(mtime)
-            print(t, new_name)
+            print 'mtimeにはパスが入っているはず',t, new_name,mtime
             shutil.move(child_dir + file_name, child_dir + new_name)
             ind += 1
             print ind
     #イメージプレーンのイメージパスの更新
-    pm.setAttr( "%s.imageName" % imagePlaneName, new_dir_path + '/' + new_file_name + str(start_num).zfill(5) + '.jpg')
+    pm.setAttr( "%s.imageName" % imagePlaneName, new_dir_path + '/' + new_file_name + str(start_num).zfill(5) + newImageFileFormat)
 
 with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as testWin:
     with pm.columnLayout( adjustableColumn=True):
