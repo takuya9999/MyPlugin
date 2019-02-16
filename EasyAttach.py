@@ -97,16 +97,19 @@ def displayConnections():
     src = False
     # もっときれいに取り出せる方法を考える。
     destConnectList = list(pm.listConnections(selectObj, connections=True, plugs=True, destination=dest, source=src))
-    if len(destConnectList) >= 1 :
-       dList = [x[1] for x in destConnectList] 
-    print 'dest=True',dList
     dest = False
     src = True
     sourceConnectList = list(pm.listConnections(selectObj, connections=True, plugs=True, destination=dest, source=src))
+    if len(destConnectList) >= 1 :
+       dList = [x[1] for x in destConnectList]
+       sList = [x[0] for x in destConnectList]
+    # print 'dest=True',dList
     if len(sourceConnectList) >= 1 :
        sList = [x[1] for x in sourceConnectList]         
-    print 'source=True',sList
-    
+       dList = [x[0] for x in sourceConnectList]
+    # print 'source=True',sList
+    for i in range(len(sList)):
+        print '接続元' ,sList[i],'⇒','接続先',dList[i]
 
     # plugsObj = cmds.listConnections(selectObj,plugs=True)
     # destinationObj = cmds.listConnections(selectObj,destination=True)
