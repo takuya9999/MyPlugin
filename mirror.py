@@ -1,24 +1,5 @@
 import pymel.core as pm
 import re
-with pm.window(title='インスタントミラー') as objMirror:
-    with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
-        
-        with pm.frameLayout(label='ミラー設定'):
-            # ミラー軸の設定
-            mirrorCoordinate = pm.optionMenu(label='ミラーの位置: ',width=150)
-            pm.menuItem(label='ワールド')
-            pm.menuItem(label='オブジェクト')
-            mirrorAxis = pm.radioButtonGrp( numberOfRadioButtons=3, #radioButtonGrp: 最大4個１グループのラジオボタンを作成　numberOfRadioButtons:[nrb]の短縮系でも可。ラジオボタンの個数を指定。
-            label='ミラー軸: ', #グループの名前
-            labelArray3=['x','y','z'],
-            select=1)
-        with pm.horizontalLayout():
-              pm.button( label='ミラー' , command='print createMirror(), "ミラー" ',bgc=[0.35,0.35,0.35])
-              pm.button( label='閉じる' , command='print objMirror.delete(), "閉じる" ',bgc=[0.35,0.35,0.35])
-        with pm.horizontalLayout():
-              pm.button( label='オブジェクト化(レガシー)' , command='print toObjLegacy(), "オブジェクト化(レガシー)" ',bgc=[0.35,0.35,0.35])
-        with pm.horizontalLayout():
-              pm.button( label='オブジェクト化' , command='print toObj(), "オブジェクト化" ',bgc=[0.35,0.35,0.35])
 
 def toObjLegacy():
     selectObj = pm.selected()
@@ -212,7 +193,27 @@ def getScaleAxisObj(sBboxP,pivot,parentObjSuffix):
     return {'sNameTail':sNameTail,'nNameTail':nNameTail,'mirrorScale':mirrorScale}
 
 
-
+with pm.window(title='インスタントミラー') as objMirror:
+    with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
+        
+        with pm.frameLayout(label='ミラー設定'):
+            # ミラー軸の設定
+            mirrorCoordinate = pm.optionMenu(label='ミラーの位置: ',width=150)
+            pm.menuItem(label='ワールド')
+            pm.menuItem(label='オブジェクト')
+            mirrorAxis = pm.radioButtonGrp( numberOfRadioButtons=3, #radioButtonGrp: 最大4個１グループのラジオボタンを作成　numberOfRadioButtons:[nrb]の短縮系でも可。ラジオボタンの個数を指定。
+            label='ミラー軸: ', #グループの名前
+            labelArray3=['x','y','z'],
+            select=1)
+        with pm.horizontalLayout():
+              pm.button( label='ミラー' , command='print createMirror(), "ミラー" ',bgc=[0.35,0.35,0.35])
+              pm.button( label='閉じる' , command='print objMirror.delete(), "閉じる" ',bgc=[0.35,0.35,0.35])
+        # with pm.horizontalLayout():
+            #   pm.button( label='オブジェクト化(レガシー)' , command='print toObjLegacy(), "オブジェクト化(レガシー)" ',bgc=[0.35,0.35,0.35])
+        with pm.horizontalLayout():
+              pm.button( label='オブジェクト化' , command='print toObj(), "オブジェクト化" ',bgc=[0.35,0.35,0.35])
+    
+    
     #ミラーしたオブジェクトを更にミラーした場合のオブジェクト化対応
     #複数選択したオブジェクトをミラーした場合、一つ一つのオブジェクトに個別でミラー処理を適用する機能の追加。
     #現状、応急処置的にオブジェクト化の際の軸を親要素のサフィックスで判別しているが、将来的にはインスタンスの情報をもとにオブジェクト化する軸を決定するようにする。
