@@ -43,16 +43,16 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
         # pm.text(label='ロック')
             with pm.horizontalLayout( ) as lock_Rotate:
                 # pm.iconTextButton( label='ロック' , command='print lockRotate()  ',image1='rotate_M.xpm',style='iconAndTextHorizontal',bgc=[0.35,0.35,0.35])
-                pm.button( label='回転ロック' , command='print lockRotate()  ',bgc=[0.35,0.35,0.35])
-                pm.button( label='X' , command='print lockRotate("x")  ', bgc=[0.4, 0.0, 0.0])
-                pm.button( label='Y' , command='print lockRotate("y")  ', bgc=[0.0, 0.4, 0.0])
-                pm.button( label='Z' , command='print lockRotate("z")  ', bgc=[0.0, 0.0, 0.4])
+                lock_RotateAll = pm.button( label='全回転ロック' , command='print lockRotate()  ',bgc=[0.35,0.35,0.35])
+                lock_RotateX = pm.button( label='X' , command='print lockRotate("x")  ', bgc=[0.4, 0.0, 0.0])
+                lock_RotateY = pm.button( label='Y' , command='print lockRotate("y")  ', bgc=[0.0, 0.4, 0.0])
+                lock_RotateZ = pm.button( label='Z' , command='print lockRotate("z")  ', bgc=[0.0, 0.0, 0.4])
             with pm.horizontalLayout( ) as lock_Move:
                 # pm.iconTextButton( label='ロック' , command='print lockTransform()  ',image1='move_M.xpm',style='iconAndTextHorizontal',bgc=[0.35,0.35,0.35])
-                pm.button( label='移動ロック' , command='print lockTransform()  ',bgc=[0.35,0.35,0.35])
-                pm.button( label='X' , command='print lockTransform("x")  ', bgc=[0.4, 0.0, 0.0])
-                pm.button( label='Y' , command='print lockTransform("y")  ', bgc=[0.0, 0.4, 0.0])
-                pm.button( label='Z' , command='print lockTransform("z")  ', bgc=[0.0, 0.0, 0.4])
+                lock_translate = pm.button( label='全移動ロック' , command='print lockTransform()  ',bgc=[0.35,0.35,0.35])
+                lock_translateX =  pm.button( label='X' , command='print lockTransform("x")  ', bgc=[0.4, 0.0, 0.0])
+                lock_translateY = pm.button( label='Y' , command='print lockTransform("y")  ', bgc=[0.0, 0.4, 0.0])
+                lock_translateZ = pm.button( label='Z' , command='print lockTransform("z")  ', bgc=[0.0, 0.0, 0.4])
             with pm.horizontalLayout( ) as unlock_Rotate:
                 # pm.iconTextButton( label='解除' , command='print unlockRotate()  ',image1='rotate_M.xpm',style='iconAndTextHorizontal',bgc=[0.35,0.35,0.35])
                 pm.button( label='解除' , command='print unlockRotate()  ',bgc=[0.35,0.35,0.35])
@@ -68,20 +68,20 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
 
         
         pm.separator() #UIの間に分割線を入れる。
-        with pm.frameLayout( label='親子リグ選択'):
+        with pm.frameLayout( label='リグ選択'):
             with pm.horizontalLayout():
                 pm.button( label='子を選択' , command='print getChildren()  ')
                 pm.button( label='親を選択' , command='print getParent()  ')
-        with pm.frameLayout( label='全てのリグを選択'):
-            with pm.horizontalLayout():
-                pm.button( label='(ワールド)' , command='print getAllRig(root=True)  ')
-                pm.button( label='(ローカル)' , command='print getAllRig(root=False)  ')
+                pm.button( label='全て選択' , command='print getAllRig(root=False)  ')
+        # with pm.frameLayout( label='全てのリグを選択'):
+            # with pm.horizontalLayout():
+                # pm.button( label='(ワールド)' , command='print getAllRig(root=True)  ')
         
         pm.separator() #UIの間に分割線を入れる。
-        with pm.frameLayout( label='ポーズリセット'): 
-            with pm.horizontalLayout( ):
-                pm.button( label='(ワールド)' , command='print poseReset(root=True)  ')
-                pm.button( label='(ローカル)' , command='print poseReset(root=False)  ')
+        # with pm.frameLayout( label='ポーズリセット'): 
+        #     with pm.horizontalLayout( ):
+        #         # pm.button( label='(ワールド)' , command='print poseReset(root=True)  ')
+        #         pm.button( label='リセット' , command='print poseReset(root=False)  ')
                 
         # 回転スライダー
         with pm.frameLayout( label='回転アトリビュート'):
@@ -683,12 +683,16 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
             if rigCheck(item):
                 if axis == 'x':
                     pm.setAttr(item.translateX,l=True)
+                    lock_translateX.setBackgroundColor([0.1, 0.0, 0.0])
                 elif axis == 'y':
                     pm.setAttr(item.translateY,l=True)
+                    lock_translateY.setBackgroundColor([0.0, 0.1, 0.0])
                 elif axis == 'z':
                     pm.setAttr(item.translateZ,l=True)
+                    lock_translateZ.setBackgroundColor([0.0, 0.0, 0.1])
                 else:
                     pm.setAttr(item.translate,l=True)
+                    lock_translate.setBackgroundColor([0.1, 0.1, 0.1])
         #  item.t or item.translateどちらでも可
             
     # 回転のロック
@@ -698,12 +702,16 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
             if rigCheck(item):
                 if axis == 'x':
                     pm.setAttr(item.rotateX,l=True)
+                    lock_RotateX.setBackgroundColor([0.1, 0.0, 0.0])
                 elif axis == 'y':
                     pm.setAttr(item.rotateY,l=True)
+                    lock_RotateY.setBackgroundColor([0.0, 0.1, 0.0])
                 elif axis == 'z':
                     pm.setAttr(item.rotateZ,l=True)
+                    lock_RotateZ.setBackgroundColor([0.0, 0.0, 0.1])
                 else:
                     pm.setAttr(item.rotate,l=True)
+                    lock_RotateAll.setBackgroundColor([0.1, 0.1, 0.1])
 
     # スケールのロック
     def lockScale(axis=None):
@@ -727,12 +735,16 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
             if rigCheck(item):
                 if axis == 'x':
                     pm.setAttr(item.translateX,l=False)
+                    lock_translateX.setBackgroundColor([0.4, 0.0, 0.0])
                 elif axis == 'y':
                     pm.setAttr(item.translateY,l=False)
+                    lock_translateY.setBackgroundColor([0.0, 0.4, 0.0])
                 elif axis == 'z':
                     pm.setAttr(item.translateZ,l=False)
+                    lock_translateZ.setBackgroundColor([0.0, 0.0, 0.4])
                 else:
                     pm.setAttr(item.translate,l=False)
+                    lock_translate.setBackgroundColor([0.35, 0.35, 0.35])
         #  item.t or item.translateどちらでも可
             
     # 回転のアンロック
@@ -742,12 +754,16 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
             if rigCheck(item):
                 if axis == 'x':
                     pm.setAttr(item.rotateX,l=False)
+                    lock_RotateX.setBackgroundColor([0.4, 0.0, 0.0])
                 elif axis == 'y':
                     pm.setAttr(item.rotateY,l=False)
+                    lock_RotateY.setBackgroundColor([0.0, 0.4, 0.0])
                 elif axis == 'z':
                     pm.setAttr(item.rotateZ,l=False)
+                    lock_RotateZ.setBackgroundColor([0.0, 0.0, 0.4])
                 else:
                     pm.setAttr(item.rotate,l=False)
+                    lock_RotateAll.setBackgroundColor([0.35, 0.35, 0.35])
 
 
 
