@@ -203,7 +203,7 @@ with pm.window( title = 'リグセレクターユーティリティ', width=300)
         def changeSelected():
             if not enableChangeSelect:
                 return
-            if pm.selected():
+            if len(pm.selected()) == 1:
                 e = pm.selected()[len(pm.selected())-1]
                 # checkRotate()
                 # checkTransform()
