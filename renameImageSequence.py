@@ -52,7 +52,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
     mayaLocation = mutl.getMayaLocation() + '\\bin'
     print 'test',mayaLocation
     rejectPadName = re.search(r"[^.]*(?=\.)",str(os.path.basename(myName)))
-    currentImgPath = currentDir + '/' + rejectPadName.group() + '.#' + file_type
+    # currentImgPath = currentDir + '/' + rejectPadName.group() + '.#' + file_type
     print 'rejectPadName',os.path.basename(myName),rejectPadName.group()
     #現在使用している画像のファイルフォーマットを取得
     currentImgName = currentDir + '/' + myName
@@ -60,10 +60,12 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
     # ユーザー入力情報
     start_num = startNum
     new_dir_name = dirName
-    new_file_name = fileName
+    if fileName == '':
+        new_file_name = rejectPadName.group()
+    else :
+        new_file_name = fileName
     if not sameDirFlag:
         new_file_name = dirName
-
     new_dir_path = currentDir + '/'+ new_dir_name
     imgFormatList = {
     'JPEG':'.jpg',
@@ -97,7 +99,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
                 arr.append(files)
                 # ファイルのコピー
                 print 'でバッグ1'
-                shutil.copy(currentDir+'/'+files, new_dir_path)
+                shutil.copyfile(currentDir+'/'+files, new_dir_path+'/'+files+'_tmp')
                 print 'でバッグ2'
     # 更新日時順に画像ファイルを連番でリネームする処理
     if __name__ == '__main__':
@@ -114,7 +116,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
         for mtime,file_name in sorted(arr):
             new_name = new_file_name + '.' + str(ind).zfill(5) + file_type 
             t = datetime.datetime.fromtimestamp(mtime)
-            print 'mtimeにはパスが入っているはず',t, new_name,mtime
+            print 'mtimeにはパスが入っているはず',t, new_name,mtime,ind
             shutil.move(child_dir + file_name, child_dir + new_name)
             ind += 1
             print ind
@@ -124,7 +126,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
     if file_type != selectFormat:
         renameList = os.listdir(new_dir_path)
         listLen = len(renameList)
-        print 'フォーマット確認', selectFormat
+        print 'フォーマット確認', selectFormat,listLen
         cmd = ['imgcvt','-r',str(startNum) + '-' + str(listLen+startNum-1).encode('cp932'),new_dir_path.encode('cp932') + '/' + new_file_name.encode('cp932') + '.@@@@@' + file_type.encode('cp932'),new_dir_path.encode('cp932') + '/'+ new_file_name.encode('cp932') + '.@@@@@' + selectFormat.encode('cp932')]
         print 'test',cmd
         returncode = subprocess.call(cmd,cwd=mayaLocation)
@@ -216,9 +218,9 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
 
         #ファイル名
         # pm.text( label='text field')
-        pm.checkBox( label='ディレクトリ名を使用する',cc='newFile.setEnable( False if newFile.getEnable() else True)')
         newFile = pm.textFieldGrp( label='新しいファイル名',
-        pht='新しいファイル名を半角英数字で指定してください...')
+        pht='未入力の場合、現在のファイル名になります')
+        pm.checkBox( label='ディレクトリ名を使用する',cc='newFile.setEnable( False if newFile.getEnable() else True)')
         # ファイルフォーマットの指定
         imgFormat = pm.optionMenu(label='フォーマット: ',width=150)
         pm.menuItem(label='JPEG')
@@ -244,9 +246,9 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         #連番指定
         # pm.text( label= '連番スタート')
         iField = pm.intFieldGrp( numberOfFields=1, #int数値入力のフィールドを作成する
-        label='連番スタート', value=[1,0,0,0] )
+        label='連番スタート番号', value=[1,0,0,0] )
         pm.separator()
         pm.button( label='フォルダを開く' , command='openCurrentImage()')
         # pm.button( label='printselectItem' , command='print pm.selected()')
-        pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
+        # pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
         pm.button( label='リネーム実行runImgcvt' , command='print runImgcvt(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
