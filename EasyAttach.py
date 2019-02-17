@@ -145,7 +145,8 @@ with pm.window( title = 'アタッチ！', width=300) as testWin:
             with pm.horizontalLayout( ):
                 attach = pm.button( label='スケールの接続' , command='print connectScale()  ')
         with pm.frameLayout( label='接続リスト表示'):
-            with pm.horizontalLayout( ):
-                attach = pm.button( label='リスト表示' , command='print displayConnections()  ')
-                attach = pm.button( label='リスト表示' , command='print displayConnections()  ')
+            # with pm.horizontalLayout( ):
+            #     pm.scriptedPanel(type="nodeEditorPanel", label="Node Editor")        
+            # with pm.horizontalLayout( ):
+            #     attach = pm.button( label='リスト表示' , command='print displayConnections()  ')
 #リグとジョイントのノードを接続する機能の実装。複数まとめての実行にも対応させる。
