@@ -39,6 +39,14 @@ def createJointOffset(Offset):
         elif prefix.getSelect() == 2: #追加
             offsetObjName = str(Offset) + "_" + str(joint)  
         offsetObj = pm.group(em = True,name = offsetObjName)
+        jointName = re.sub(r"^[a-zA-Z]*?_","Rig_",offsetObjName)
+        pm.circle( name=jointName )
+        pm.select(jointName,r=30)
+        # 回転の軸がなんでこれで（Z）いいのかわからないので確認する。
+        pm.rotate(0,0,90,r = True)
+        pm.scale(2,2,2)
+        pm.makeIdentity(apply=True,t=1,r=1,s=1,n=0,pn=1)
+        pm.parent(jointName,offsetObj)
         #AにBをコンストレイント！
         pm.parentConstraint(joint,offsetObj, weight=1)
         #必要のないコンストレイントノードの削除
@@ -60,33 +68,6 @@ def connectScale():
     firstSelectObj = selectObj[0]
     # print 'fromSelectObj',firstSelectObj
     pm.connectAttr(lastSelectObj.scale,firstSelectObj.scale)
-
-def printConnectionInfo(node, direction):
-    u'''
-    :param node: ノード名
-    :param direction: インプット側の情報かアウトプット側の情報かを in/out で指定
-    :return:
-    '''
-    dest = False
-    src = False
-    if direction == 'in': src = True
-    elif direction == 'out': dest = True
-    else: return
-
-    l_connections = cmds.listConnections(node, connections=True, plugs=True, destination=dest, source=src)
-    if not l_connections:
-        MGlobal.displayWarning('No connections!')
-        return
-
-    counter = 0
-    for i in range(len(l_connections) / 2):
-        src_node = l_connections[counter]
-        dest_node = l_connections[counter+1]
-        if direction == 'in':
-            src_node = l_connections[counter+1]
-            dest_node = l_connections[counter]
-        print('%s -> %s' % (src_node, dest_node))
-        counter += 2
 
 def displayConnections():
     # selectObj = cmds.ls(sl=True)
@@ -142,11 +123,11 @@ with pm.window( title = 'アタッチ！', width=300) as testWin:
         with pm.frameLayout( label='ノードの接続'):
             with pm.horizontalLayout( ):
                 attach = pm.button( label='回転の接続' , command='print connectRotate()  ')
-            with pm.horizontalLayout( ):
-                attach = pm.button( label='スケールの接続' , command='print connectScale()  ')
-        with pm.frameLayout( label='接続リスト表示'):
+            # with pm.horizontalLayout( ):
+            #     attach = pm.button( label='スケールの接続' , command='print connectScale()  ')
+        # with pm.frameLayout( label='接続リスト表示'):
             # with pm.horizontalLayout( ):
             #     pm.scriptedPanel(type="nodeEditorPanel", label="Node Editor")        
             # with pm.horizontalLayout( ):
             #     attach = pm.button( label='リスト表示' , command='print displayConnections()  ')
-#リグとジョイントのノードを接続する機能の実装。複数まとめての実行にも対応させる。
+# リグとジョイントのノードを接続する機能の実装。複数まとめての実行にも対応させる。
