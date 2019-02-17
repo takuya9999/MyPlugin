@@ -251,4 +251,4 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         pm.button( label='フォルダを開く' , command='openCurrentImage()')
         # pm.button( label='printselectItem' , command='print pm.selected()')
         # pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
-        pm.button( label='リネーム実行runImgcvt' , command='print runImgcvt(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
+        pm.button( label='リネーム実行' , command='print runImgcvt(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
