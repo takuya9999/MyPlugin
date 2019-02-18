@@ -1,44 +1,6 @@
 import pymel.core as pm
 import re
 
-def toObjLegacy():
-    selectObj = pm.selected()
-    
-    #選択オジェクトの名前を文字列で取得
-    prevSelectObjN = str(selectObj[len(pm.selected())-1])
-    
-    #選択オブジェクト(ミラーオブジェクトの軸となる親階層)のピボット(スケール、回転)の取得
-    prevSelectObjSP = selectObj[len(pm.selected())-1].scalePivot.get()
-    prevSelectObjRP = selectObj[len(pm.selected())-1].rotatePivot.get()
-
-    #結合して一つにしたオブジェクト([transfrom,polyunite]の配列オブジェクト) chでヒストリを削除しておく
-    newSelectObj = pm.polyUnite(selectObj,n=prevSelectObjN,ch=False)
-    
-    #結合したオブジェクトのピボットを設定
-    newSelectObj[0].scalePivot.set(prevSelectObjSP)
-    newSelectObj[0].rotatePivot.set(prevSelectObjRP)
-    
-    #結合した選択オブジェクトの中心点を取る処理
-    sBbox = pm.exactWorldBoundingBox(newSelectObj)
-    sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
-    
-    #結合した選択オブジェクトのピボットを取る処理    
-    pivot = newSelectObj[0].scalePivot.get()
-    
-    #ミラーに関する情報の取得
-    mirrorInfo = getScaleAxis(sBboxP,pivot)
-    
-    #複製してリネームする処理
-    duplicateObj = pm.duplicate(newSelectObj[0],n=prevSelectObjN+mirrorInfo['nNameTail'])
-    pm.rename(newSelectObj[0],prevSelectObjN+mirrorInfo['sNameTail'])
-    
-    #ミラー配置する処理
-    pm.scale(mirrorInfo['mirrorScale'],p=pivot)
-    
-    #ヒストリとグループノードの残骸の削除
-    pm.delete(prevSelectObjN)
-
-
 def toObj():
     selectObj = pm.selected()
     #選択オジェクトの名前を文字列で取得
@@ -95,25 +57,8 @@ def toObj():
     pm.select(newSelectObj[0])
     pm.xform(cp=True)
 
-def createMirror():
-    # 選択オブジェクト
-    selectObj = pm.selected()[len(pm.selected())-1]
-    prevObj = str(selectObj) #ミラー処理前の選択オブジェクト名
-    sBbox = pm.exactWorldBoundingBox(selectObj)
-    sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
-    # 軸の対象となるオブジェクト
-    centerObj = pm.selected()[0]
-    cBbox = pm.exactWorldBoundingBox(centerObj)
-    # オブジェクトの中心点の取得
-    cBboxP =  [(cBbox[0] + cBbox[3])/2, (cBbox[1] + cBbox[4])/2, (cBbox[2] + cBbox[5])/2]
-    # ピボット位置の設定(ワールド、オブジェクト)
-    if mirrorCoordinate.getSelect() == 1 : #ワールド中心
-        pivot = [0,0,0]
-        mirrorInfo = getScaleAxis(sBboxP,pivot)
-    else : #オブジェクト中心
-        pivot = cBboxP
-        mirrorInfo = getScaleAxis(sBboxP,pivot)
-    
+def createMirror(selectObj,prevObj,sBbox,sBboxP,pivot,mirrorInfo):
+        
     # 選択オブジェクトのフリーズ処理 フリーズしたほうが良いのか悪いのか判断難しい。しない方がいい場合もありそう。
     pm.makeIdentity(selectObj,apply=True,t=1,r=1,s=1,n=0,pn=1)
     
@@ -127,10 +72,6 @@ def createMirror():
     pm.select(instanceGrpObj)
     pm.xform(scale = mirrorInfo['mirrorScale'],scalePivot=pivot,ws=True)
     pm.xform(cp=True)
-    
-    #scaleのドキュメントにwsないけどつけるとワールド軸でスケールがかかってるっぽい。でも思ったような結果にならない。
-    # pm.scale(mirrorInfo['mirrorScale'],p=pivot,ws=True) 
-    # pm.scale(mirrorInfo['mirrorScale'],p=pivot) 
     
     #親グループの作成 あり、なしで選択できるようにした方がいいかも。
     pm.group(grpObj,instanceGrpObj,n=prevObj+'_Mirror')
@@ -192,6 +133,33 @@ def getScaleAxisObj(sBboxP,pivot,parentObjSuffix):
             nNameTail = '_B'
     return {'sNameTail':sNameTail,'nNameTail':nNameTail,'mirrorScale':mirrorScale}
 
+def  mirror():
+    selectObjs = pm.selected()
+    if mirrorCoordinate.getSelect() == 2:
+        selectObjs.pop(-1)
+    for selectObj in selectObjs:
+        # 選択オブジェクト
+        prevObj = str(selectObj) #ミラー処理前の選択オブジェクト名　引数
+        sBbox = pm.exactWorldBoundingBox(selectObj) #引数
+        sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2] #引数
+        
+        # 軸の対象となるオブジェクト
+        centerObj = pm.selected()[-1]
+        cBbox = pm.exactWorldBoundingBox(centerObj)
+        # オブジェクトの中心点の取得
+        cBboxP =  [(cBbox[0] + cBbox[3])/2, (cBbox[1] + cBbox[4])/2, (cBbox[2] + cBbox[5])/2]
+        
+        
+        # ピボット位置の設定(ワールド、オブジェクト)
+        if mirrorCoordinate.getSelect() == 1 : #ワールド中心
+            pivot = [0,0,0] #引数
+            mirrorInfo = getScaleAxis(sBboxP,pivot) #引数
+        else : #オブジェクト中心
+            pivot = cBboxP #引数
+            mirrorInfo = getScaleAxis(sBboxP,pivot) #引数
+        
+        createMirror(selectObj,prevObj,sBbox,sBboxP,pivot,mirrorInfo)
+
 
 with pm.window(title='インスタントミラー') as objMirror:
     with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
@@ -206,8 +174,8 @@ with pm.window(title='インスタントミラー') as objMirror:
             labelArray3=['x','y','z'],
             select=1)
         with pm.horizontalLayout():
-              pm.button( label='ミラー' , command='print createMirror(), "ミラー" ',bgc=[0.35,0.35,0.35])
-              pm.button( label='閉じる' , command='print objMirror.delete(), "閉じる" ',bgc=[0.35,0.35,0.35])
+              pm.button( label='ミラー' , command='print mirror(), "ミラー" ',bgc=[0.35,0.35,0.35])
+            #   pm.button( label='閉じる' , command='print objMirror.delete(), "閉じる" ',bgc=[0.35,0.35,0.35])
         # with pm.horizontalLayout():
             #   pm.button( label='オブジェクト化(レガシー)' , command='print toObjLegacy(), "オブジェクト化(レガシー)" ',bgc=[0.35,0.35,0.35])
         with pm.horizontalLayout():
