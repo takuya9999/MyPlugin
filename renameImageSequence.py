@@ -37,8 +37,8 @@ def openCurrentImage():
 
 def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
 
-    if dirName == '': #ディレクトリ名がない場合は実行できないようにする
-        return
+    # if dirName == '': #ディレクトリ名がない場合は実行できないようにする
+        # return
 
     myNode = pm.selected()
     if len(myNode) == 1: #選択したオブジェクトのアトリビュートがshapしかない場合
@@ -47,6 +47,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
         imagePlaneName = myNode[0].getShape() #選択したオブジェクトのアトリビュートが複数ある場合
     myName = pm.getAttr( "%s.imageName" % imagePlaneName) #イメージデータフォルダのパス(絶対パスで取得できてるぽい)
     currentDir = os.path.dirname(myName)
+    currentDirName = os.path.basename(currentDir)
     file_type = os.path.splitext(myName)[1]
     print 'myNameで何が取得できているか確認。',file_type
     mayaLocation = mutl.getMayaLocation() + '\\bin'
@@ -59,7 +60,7 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
     
     # ユーザー入力情報
     start_num = startNum
-    new_dir_name = dirName
+    new_dir_name = 'tmp_Dir'
     if fileName == '':
         new_file_name = rejectPadName.group()
     else :
@@ -91,15 +92,21 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
 
     #カレントディレクトリの下に新しいディレクトリを作って画像データをコピーする処理
     if __name__ == '__main__':
+        cmtime = os.path.getmtime(currentDir)
+        cTimestamp = datetime.datetime.now()
+        oldDirPath = currentDir + '/' + currentDirName + '_' + cTimestamp.strftime('%Y-%m%d-%H%M%S')
+        print 'oldDirPath',oldDirPath
+        os.mkdir(oldDirPath)
         if os.path.isdir(new_dir_path) is False: #指定したディレクトリパスが存在しない場合
             os.mkdir(new_dir_path) #新しくディレクトリを作成する
         arr = []
         for files in os.listdir(currentDir):
             if files.endswith(file_type):           
                 arr.append(files)
-                # ファイルのコピー
+                # ファイルのコピーと移動
                 print 'でバッグ1'
                 shutil.copyfile(currentDir+'/'+files, new_dir_path+'/'+files+'_tmp')
+                shutil.move(currentDir+'/'+files, oldDirPath)
                 print 'でバッグ2'
     # 更新日時順に画像ファイルを連番でリネームする処理
     if __name__ == '__main__':
@@ -121,19 +128,25 @@ def runImgcvt(dirName='', sameDirFlag='True', fileName = '', startNum = 1,):
             ind += 1
             print ind
 
-    #カレントディレクトリの下に新しいディレクトリを作って画像データをコピーする処理
+    #　フォーマット変換
     selectFormat = imgFormatList[imgFormat.getValue()] 
     if file_type != selectFormat:
         renameList = os.listdir(new_dir_path)
         listLen = len(renameList)
         print 'フォーマット確認', selectFormat,listLen
-        cmd = ['imgcvt','-r',str(startNum) + '-' + str(listLen+startNum-1).encode('cp932'),new_dir_path.encode('cp932') + '/' + new_file_name.encode('cp932') + '.@@@@@' + file_type.encode('cp932'),new_dir_path.encode('cp932') + '/'+ new_file_name.encode('cp932') + '.@@@@@' + selectFormat.encode('cp932')]
+        cmd = ['imgcvt','-r',str(startNum) + '-' + str(listLen+startNum-1).encode('cp932'),new_dir_path.encode('cp932') + '/' + new_file_name.encode('cp932') + '.@@@@@' + file_type.encode('cp932'),currentDir.encode('cp932') + '/'+ new_file_name.encode('cp932') + '.@@@@@' + selectFormat.encode('cp932')]
         print 'test',cmd
         returncode = subprocess.call(cmd,cwd=mayaLocation)
-        for removeFile in renameList:
-            if removeFile.endswith(file_type):
-                os.remove(new_dir_path + '/' + removeFile)
-    pm.setAttr( "%s.imageName" % imagePlaneName, new_dir_path + '/' + new_file_name + '.' + str(start_num).zfill(5) + selectFormat)
+        shutil.rmtree(new_dir_path)
+        # for removeFile in renameList:
+            # if removeFile.endswith(file_type):
+                # os.remove(new_dir_path + '/' + removeFile)
+    else:
+        for img in os.listdir(new_dir_path):
+            shutil.move(os.path.join(new_dir_path, img), currentDir)
+        print 'new_dir_path',new_dir_path
+        shutil.rmtree(new_dir_path)
+    pm.setAttr( "%s.imageName" % imagePlaneName, currentDir + '/' + new_file_name + '.' + str(start_num).zfill(5) + selectFormat)
 
 
 
@@ -212,15 +225,15 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         
         #ディレクトリ名
         # pm.text( label='text field')
-        newDir = pm.textFieldGrp( label='※必須:新しいディレクトリ名',
-        pht='ディレクトリ名を半角英数字で指定してください...')
-        pm.separator()
+        # newDir = pm.textFieldGrp( label='※必須:新しいディレクトリ名',
+        # pht='ディレクトリ名を半角英数字で指定してください...')
+        # pm.separator()
 
         #ファイル名
         # pm.text( label='text field')
         newFile = pm.textFieldGrp( label='新しいファイル名',
         pht='未入力の場合、現在のファイル名になります')
-        pm.checkBox( label='ディレクトリ名を使用する',cc='newFile.setEnable( False if newFile.getEnable() else True)')
+        # pm.checkBox( label='ディレクトリ名を使用する',cc='newFile.setEnable( False if newFile.getEnable() else True)')
         # ファイルフォーマットの指定
         imgFormat = pm.optionMenu(label='フォーマット: ',width=150)
         pm.menuItem(label='JPEG')
@@ -251,4 +264,4 @@ with pm.window( title = 'RE:ネームイメージシーケンス', width=300) as
         pm.button( label='フォルダを開く' , command='openCurrentImage()')
         # pm.button( label='printselectItem' , command='print pm.selected()')
         # pm.button( label='リネーム実行' , command='print getSelectedImagePlaneName(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
-        pm.button( label='リネーム実行' , command='print runImgcvt(newDir.getText(), newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
+        pm.button( label='リネーム実行' , command='print runImgcvt("", newFile.getEnable(), newFile.getText(), iField.getValue()[0])')
