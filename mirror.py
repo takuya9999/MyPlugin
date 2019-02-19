@@ -1,43 +1,8 @@
 import pymel.core as pm
 import re
 
-def toObj():
-    selectObj = pm.selected()
-    #選択オジェクトの名前を文字列で取得
-    prevSelectObjN = str(selectObj[len(pm.selected())-1])
-    prevSelectObjN = re.sub(r".*\|","",str(prevSelectObjN))
-    #選択オブジェクトのピボット(スケール、回転)の取得
-    parentObj = selectObj[len(pm.selected())-1].getParent()
-    parentObjSuffix = re.search(r"[^_]*_*$",str(parentObj))
-    pParentObj = parentObj.getParent()
-    pPParentObj = pParentObj.getParent()
-    prevSelectObjSP = pParentObj.scalePivot.get()
-    prevSelectObjRP = pParentObj.rotatePivot.get()
+def toObj(prevSelectObjN,newSelectObj,sBboxP,pivot,mirrorInfo):
 
-    #親の親要素のバウンディングボックスの取得
-    pPbox = pm.exactWorldBoundingBox(pParentObj)
-    #親の親要素のバウンディングボックスの中心点の取得
-    pPboxP =  [(pPbox[0] + pPbox[3])/2, (pPbox[1] + pPbox[4])/2, (pPbox[2] + pPbox[5])/2]
-    #選択オブジェクトの複製
-    newSelectObj = pm.duplicate(selectObj[len(pm.selected())-1],n=prevSelectObjN)
-    
-    #親グループの作成。ミラーグループに親がいない場合はワールドにオブジェクトを作成する。
-    if pPParentObj != None:
-        pm.parent(newSelectObj,pPParentObj)
-    else :
-        pm.parent(newSelectObj,w=True)
-    pm.parent(pParentObj, rm=True)
-    
-    #結合した選択オブジェクトの中心点を取る処理
-    sBbox = pm.exactWorldBoundingBox(newSelectObj[0])
-    sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2]
-    #ミラーの軸となるピボットの指定（親の親要素の中心点）    
-    pivot = pPboxP
-   
-    #ミラーに関する情報の取得
-    print "sBboxP,pivotの値の確認",sBboxP, pivot
-    mirrorInfo = getScaleAxisObj(sBboxP,pivot,parentObjSuffix.group())
-   
     #複製してリネームする処理
     #sName=オリジナル,nName=複製オブジェクトのこと
     print "newSelectObj[0]の中身の確認",newSelectObj[0]
@@ -160,7 +125,47 @@ def  mirror():
         
         createMirror(selectObj,prevObj,sBbox,sBboxP,pivot,mirrorInfo)
 
+def changeToObj():
+    selectObjs = pm.selected()
+    for selectObj in selectObjs:
+        #選択オジェクトの名前を文字列で取得
+        prevSelectObjN = str(selectObj) 
+        prevSelectObjN = re.sub(r".*\|","",str(prevSelectObjN)) #
+        #選択オブジェクトのピボット(スケール、回転)の取得
+        parentObj = selectObj.getParent()
+        parentObjSuffix = re.search(r"[^_]*_*$",str(parentObj))
+        pParentObj = parentObj.getParent()
+        pPParentObj = pParentObj.getParent()
+        prevSelectObjSP = pParentObj.scalePivot.get()
+        prevSelectObjRP = pParentObj.rotatePivot.get()
 
+        #親の親要素のバウンディングボックスの取得
+        pPbox = pm.exactWorldBoundingBox(pParentObj)
+        #親の親要素のバウンディングボックスの中心点の取得
+        pPboxP =  [(pPbox[0] + pPbox[3])/2, (pPbox[1] + pPbox[4])/2, (pPbox[2] + pPbox[5])/2]
+        #選択オブジェクトの複製
+        newSelectObj = pm.duplicate(selectObj,n=prevSelectObjN) #
+        
+        #親グループの作成。ミラーグループに親がいない場合はワールドにオブジェクトを作成する。
+        if pPParentObj != None:
+            pm.parent(newSelectObj,pPParentObj)
+        else :
+            pm.parent(newSelectObj,w=True)
+        pm.parent(pParentObj, rm=True)
+        
+        #結合した選択オブジェクトの中心点を取る処理
+        sBbox = pm.exactWorldBoundingBox(newSelectObj[0])
+        sBboxP =  [(sBbox[0] + sBbox[3])/2, (sBbox[1] + sBbox[4])/2, (sBbox[2] + sBbox[5])/2] #
+        #ミラーの軸となるピボットの指定（親の親要素の中心点）    
+        pivot = pPboxP #
+    
+        #ミラーに関する情報の取得
+        print "sBboxP,pivotの値の確認",sBboxP, pivot
+        mirrorInfo = getScaleAxisObj(sBboxP,pivot,parentObjSuffix.group()) #
+
+        toObj(prevSelectObjN,newSelectObj,sBboxP,pivot,mirrorInfo)
+   
+#    --------
 with pm.window(title='インスタントミラー') as objMirror:
     with pm.columnLayout(adjustableColumn =True): #columnLayout:縦方向に要素を配置する　adjustableColumn: trueでUI横幅一杯に伸縮する
         
@@ -179,7 +184,7 @@ with pm.window(title='インスタントミラー') as objMirror:
         # with pm.horizontalLayout():
             #   pm.button( label='オブジェクト化(レガシー)' , command='print toObjLegacy(), "オブジェクト化(レガシー)" ',bgc=[0.35,0.35,0.35])
         with pm.horizontalLayout():
-              pm.button( label='オブジェクト化' , command='print toObj(), "オブジェクト化" ',bgc=[0.35,0.35,0.35])
+              pm.button( label='オブジェクト化' , command='print changeToObj(), "オブジェクト化" ',bgc=[0.35,0.35,0.35])
     
     
     #ミラーしたオブジェクトを更にミラーした場合のオブジェクト化対応
